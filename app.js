@@ -1,11 +1,59 @@
-const http = require("http"); 
-// Node.js의 내장 HTTP 모듈을 가져와 http 변수에 저장
+const http = require("http");
+const querystring = require("querystring");
+
+const comments = [];
 
 const server = http.createServer((request, response) => {
-    response.end("Hello World");
+  // GET /
+  // 댓글 입력 화면
+  if (request.method === "GET" && request.url === "/") {
+    response.setHeader("Content-Type", "text/html; charset=utf-8");
+    response.end(`
+      <h1>Hello Comment</h1>
+
+      <form action="/comment" method="POST">
+        <p>댓글</p>
+        <input name="comment" />
+        <button type="submit">작성</button>
+      </form>
+    `);
+    return;
+  }
+
+  // GET /comments
+  // 댓글 목록 JSON 응답
+  if (request.method === "GET" && request.url === "/comments") {
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(JSON.stringify(comments));
+    return;
+  }
+
+  // POST /comment
+  // 댓글 저장
+  if (request.method === "POST" && request.url === "/comment") {
+    let body = "";
+
+    request.on("data", (chunk) => {
+      body += chunk;
+    });
+
+    request.on("end", () => {
+      const parsedBody = querystring.parse(body);
+
+      comments.push({
+        comment: parsedBody.comment,
+      });
+
+      response.statusCode = 302;
+      response.setHeader("Location", "/");
+      response.end();
+    });
+
+    return;
+  }
+
+  response.statusCode = 404;
+  response.end("Not Found");
 });
-// 웹 서버를 생성하고, Node.js가 request와 response 객체를 만들어서 우리 코드에 전달해줌
-// 지금은 request를 받으면 서버는 Hello World를 응답으로 보내고 응답을 종료 (end는 응답 보내기/종료 둘다함)
 
 server.listen(3000);
-// 생성한 웹 서버를 3000번 포트에서 실행하고, 클라이언트의 요청을 계속 대기
