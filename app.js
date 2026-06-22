@@ -1,59 +1,38 @@
-const http = require("http");
-const querystring = require("querystring");
+const express = require("express");
 
+const app = express();
+
+// Form(body)을 객체(req.body)로 만들어주는 미들웨어
+app.use(express.urlencoded({ extended: true }));
+
+// RAM에 저장되는 댓글 배열
 const comments = [];
 
-const server = http.createServer((request, response) => {
-  // GET /
-  // 댓글 입력 화면
-  if (request.method === "GET" && request.url === "/") {
-    response.setHeader("Content-Type", "text/html; charset=utf-8");
-    response.end(`
-      <h1>Hello Comment</h1>
+// 메인 페이지
+app.get("/", (req, res) => {
+  res.send(`
+    <h1>Hello Comment</h1>
 
-      <form action="/comment" method="POST">
-        <p>댓글</p>
-        <input name="comment" />
-        <button type="submit">작성</button>
-      </form>
-    `);
-    return;
-  }
-
-  // GET /comments
-  // 댓글 목록 JSON 응답
-  if (request.method === "GET" && request.url === "/comments") {
-    response.setHeader("Content-Type", "application/json; charset=utf-8");
-    response.end(JSON.stringify(comments));
-    return;
-  }
-
-  // POST /comment
-  // 댓글 저장
-  if (request.method === "POST" && request.url === "/comment") {
-    let body = "";
-
-    request.on("data", (chunk) => {
-      body += chunk;
-    });
-
-    request.on("end", () => {
-      const parsedBody = querystring.parse(body);
-
-      comments.push({
-        comment: parsedBody.comment,
-      });
-
-      response.statusCode = 302;
-      response.setHeader("Location", "/");
-      response.end();
-    });
-
-    return;
-  }
-
-  response.statusCode = 404;
-  response.end("Not Found");
+    <form action="/comment" method="POST">
+      <input name="comment" />
+      <button type="submit">작성</button>
+    </form>
+  `);
 });
 
-server.listen(3000);
+// 댓글 저장
+app.post("/comment", (req, res) => {
+  comments.push(req.body);
+
+  res.redirect("/");
+});
+
+// 댓글 목록 조회
+app.get("/comments", (req, res) => {
+  res.send(comments);
+});
+
+// 서버 실행
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
+});
