@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: hello-comment-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: hello
+      POSTGRES_PASSWORD: hello1234
+      POSTGRES_DB: hello_comment
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
